@@ -41,11 +41,33 @@ public class NetworkManager
 
         if (ipAddress != null) {
             String hostAddress = ipAddress.getHostAddress();
-            String network = hostAddress.substring(0, hostAddress.lastIndexOf(".") + 1);
-            for (Integer i = 1; i <= 254; i++) {
-                InetAddress targetAddress = InetAddress.getByName(network + i.toString());
-                if (targetAddress.isReachable(20))
-                    availableHosts.add(targetAddress.getHostAddress());
+            String broadcastAddress = hostAddress.substring(0, hostAddress.lastIndexOf(".") + 1) + "0";
+
+            MulticastSocket socket = new MulticastSocket(port);
+            InetAddress broadcastGroup = InetAddress.getByName(broadcastAddress);
+            socket.joinGroup(broadcastGroup);
+            socket.setSoTimeout(100);
+
+            byte[] request = "IS_LEADER".getBytes();
+            DatagramPacket requestPacket = new DatagramPacket(request, request.length);
+            
+            socket.send(requestPacket);
+            
+            byte[] response = new byte[256];
+            DatagramPacket responsePacket = new DatagramPacket(response, response.length);
+
+            try {
+                socket.receive(responsePacket);
+
+                InetAddress leaderAddress = responsePacket.getAddress();
+                
+
+                // receive the response from the leader (which is its id and you can get the IP from the packet)
+                // receive number of hosts registered on the leader
+                // add hosts to availableHosts
+            }
+            catch (SocketTimeoutException ex) {
+                // become the leader
             }
         }
 
