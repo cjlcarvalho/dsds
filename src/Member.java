@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.NotBoundException;
+import java.sql.PreparedStatement;
 
 public class Member extends UnicastRemoteObject implements IMember
 {
@@ -14,6 +15,7 @@ public class Member extends UnicastRemoteObject implements IMember
     {
         _currentMembers = new ArrayList<String>();
         _logfile = UUID.randomUUID().toString().replace("-", "") + ".txt";
+        _queriesExecuted = 0;
     }
 
     public boolean isAlive() throws RemoteException
@@ -37,13 +39,19 @@ public class Member extends UnicastRemoteObject implements IMember
     {
         System.out.println("executing query");
 
+        String q = query.substring(6, query.length());
+
+        _executeSQL(q);
+
+        _queriesExecuted++;
+
         for (String member : _currentMembers)
         {
             try
             {
                 Registry memberR = LocateRegistry.getRegistry(member, Settings.MEMBER_RMI_PORT);
                 IMember memberO = (IMember) memberR.lookup(Settings.MEMBER_RMI_NAME);
-                memberO.execute(query);
+                memberO.executeAsMember(_queriesExecuted, q);
             }
             catch (NotBoundException ex)
             {
@@ -51,14 +59,39 @@ public class Member extends UnicastRemoteObject implements IMember
             }
         }
 
-        updateLog(query);
+        _updateLog(q);
     }
 
-    public void updateLog(String query)
+    private void executeAsMember(int queriesExecuted, String query) {
+        // se o valor atual - valor anterior > 1, então houve algum erro
+        // pedir últimas queries ao líder a partir do número que parou
+
+        _queriesExecuted = queriesExecuted;
+
+        _executeSQL(query);
+
+        _updateLog(query);
+    }
+
+    private void updateLog(String query)
     {
-        // TODO: update log
+        File file = new File(_logfile);
+        FileWriter fr = new FileWriter(file, true);
+        fr.write(_queriesExecuted.toString() + " | " + query);
+        fr.close();
+    }
+
+    private void _executeSQL(String query) throws Exception
+    {
+        PreparedStatement pstm = DBConnection().getConnection().prepareStatement(query);
+        try {
+            pstm.executeQuery();
+        } catch (Exception ex) {
+            System.out.println("erro durante execução de query sql");
+        }
     }
 
     List<String> _currentMembers;
     String _logfile;
+    Integer _queriesExecuted;
 }

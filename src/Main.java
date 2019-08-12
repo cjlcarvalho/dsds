@@ -98,6 +98,7 @@ public class Main
             {
                 try
                 {
+                    // quem tiver mais queries executadas será o líder
                     leaderAddress = getLeaderAddress();
 
                     if (leaderAddress.equals(InetAddress.getLocalHost().toString()))
