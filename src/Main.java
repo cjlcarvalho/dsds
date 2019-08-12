@@ -5,10 +5,6 @@ import java.net.SocketTimeoutException;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
-import java.net.UnknownHostException;
-import java.io.IOException;
-import java.rmi.NotBoundException;
-import java.rmi.Remote;
 
 public class Main
 {
@@ -33,17 +29,17 @@ public class Main
         socket.setSoTimeout(1000);
 
         byte[] isLeader = "IS_LEADER".getBytes();
-        DatagramPacket req = new DatagramPacket(isLeader, isLeader.length, broadcast,
-                                                Settings.LEADER_UDP_PORT);
-        socket.send(req);
+        DatagramPacket request = new DatagramPacket(isLeader, isLeader.length, broadcast,
+                                                    Settings.LEADER_UDP_PORT);
+        socket.send(request);
 
-        byte[] msg = new byte[1];
-        DatagramPacket resp = new DatagramPacket(msg, msg.length);
+        byte[] resp = new byte[1];
+        DatagramPacket response = new DatagramPacket(resp, resp.length);
 
         try
         {
-            socket.receive(resp);
-            return resp.getAddress().toString().replace("/", "");
+            socket.receive(response);
+            return response.getAddress().toString().replace("/", "");
         }
         catch (SocketTimeoutException ex)
         {
@@ -63,54 +59,8 @@ public class Main
         }
         else
         {
-            (new Thread(new Runnable()
-            {
-                public void run()
-                {
-                    try
-                    {
-                        Registry registry = LocateRegistry.createRegistry(Settings.MEMBER_RMI_PORT);
-                        registry.rebind("RmiMember", member);
-                    }
-                    catch (RemoteException ex)
-                    {
-                    }
-                }
-            })).start();
-
-            IMember leader = buildLeader(leaderAddress);
-            System.out.println("current leader: " + leaderAddress);
-
-            while (true)
-            {
-                try
-                {
-                    leader.isAlive();
-                }
-                catch (RemoteException ex)
-                {
-                    try
-                    {
-                        leaderAddress = getLeaderAddress();
-
-                        if (leaderAddress.equals(InetAddress.getLocalHost().toString()))
-                            break;
-                        else
-                        {
-                            leader = buildLeader(leaderAddress);
-                            System.out.println("current leader: " + leaderAddress);
-                        }
-                    }
-                    catch (Exception _ex)
-                    {
-                    }
-                }
-            }
-
+            startMemberService(member, leaderAddress);
             System.out.println("I became the leader!");
-            leader = null;
-            Registry registry = LocateRegistry.getRegistry(Settings.MEMBER_RMI_PORT);
-            registry.unbind("RmiMember");
             startLeaderService(member);
         }
     }
@@ -128,6 +78,43 @@ public class Main
         IMember leaderObj = (IMember) leader.lookup("RmiLeader");
         leaderObj.addMember(InetAddress.getLocalHost().toString());
         return leaderObj;
+    }
+
+    public void startMemberService(Member member, String leaderAddress) throws Exception
+    {
+        MemberService memberService = new MemberService(member);
+        (new Thread(memberService)).start();
+
+        IMember leader = buildLeader(leaderAddress);
+        System.out.println("current leader: " + leaderAddress);
+
+        while (true)
+        {
+            try
+            {
+                leader.isAlive();
+            }
+            catch (RemoteException ex)
+            {
+                try
+                {
+                    leaderAddress = getLeaderAddress();
+
+                    if (leaderAddress.equals(InetAddress.getLocalHost().toString()))
+                        break;
+                    else
+                    {
+                        leader = buildLeader(leaderAddress);
+                        System.out.println("current leader: " + leaderAddress);
+                    }
+                }
+                catch (Exception _ex)
+                {
+                }
+            }
+        }
+
+        memberService.stop();
     }
 
 }

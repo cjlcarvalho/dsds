@@ -1,9 +1,6 @@
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.DatagramSocket;
-import java.util.Base64;
-import java.rmi.RemoteException;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 public class LeaderService implements Runnable
@@ -47,10 +44,7 @@ public class LeaderService implements Runnable
                 }
             }
         }
-        catch (RemoteException ex)
-        {
-        }
-        catch (IOException ex)
+        catch (Exception ex)
         {
         }
     }

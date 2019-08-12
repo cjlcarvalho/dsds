@@ -4,14 +4,13 @@ import java.util.List;
 import java.util.UUID;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.RemoteException;
-import java.net.UnknownHostException;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.NotBoundException;
 
 public class Member extends UnicastRemoteObject implements IMember
 {
-    public Member() throws RemoteException, UnknownHostException
+    public Member() throws Exception
     {
         _currentMembers = new ArrayList<String>();
         _logfile = UUID.randomUUID().toString().replace("-", "") + ".txt";
