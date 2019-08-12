@@ -78,6 +78,7 @@ public class Main
 
                         if (leaderAddress.equals(InetAddress.getLocalHost().toString())) {
                             System.out.println("I became the leader!");
+                            leaderInstance = null;
                             Registry registry = LocateRegistry.getRegistry(Settings.NODE_RMI_PORT);
                             registry.unbind("RmiClient");
                             startLeaderService(node);
