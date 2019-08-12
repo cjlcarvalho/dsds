@@ -9,8 +9,6 @@ import java.net.UnknownHostException;
 import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
-import java.rmi.Naming;
-import java.net.MalformedURLException;
 
 public class Main
 {
@@ -50,56 +48,56 @@ public class Main
     public void run () throws Exception
     {
         String leaderAddress = getLeaderAddress();
+        Node node = new Node();
 
-        if (leaderAddress.equals(InetAddress.getLocalHost().toString()) {
-        System.out.println("I became the leader!");
-            Node node = new Node();
+        if (leaderAddress.equals(InetAddress.getLocalHost().toString())) {
+            System.out.println("I became the leader!");
             startLeaderService(node);
         } else {
-            System.out.println(leaderAddress);
+            (new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        Registry registry = LocateRegistry.createRegistry(Settings.NODE_RMI_PORT);
+                        registry.rebind("RmiClient", node);
+                    } catch (RemoteException ex) {
+                    }
+                }
+            })).start();
 
             Registry leader = LocateRegistry.getRegistry(leaderAddress, Settings.LEADER_RMI_PORT);
             IMessageReceiver leaderInstance = (IMessageReceiver)leader.lookup("RmiServer");
             leaderInstance.addNode(InetAddress.getLocalHost().toString());
 
-            (new Thread(new Runnable() {
-                public void run() {
-                    while (true) {
-                        try {
-                            leaderInstance.isAlive();
-                        } catch (RemoteException ex) {
-                            try {
-                                String leaderAddress = getLeaderAddress();
+            while (true) {
+                try {
+                    leaderInstance.isAlive();
+                    System.out.println("the leader is alive!");
+                } catch (RemoteException ex) {
+                    try {
+                        leaderAddress = getLeaderAddress();
 
-                                if (leaderAddress.equals(InetAddress.getLocalHost().toString())) {
-                                    System.out.println("I became the leader!");
-                                    _registry.unbind("RmiClient");
-                                    startLeaderService(node);
-                                } else {
-                                    Registry leader = LocateRegistry.getRegistry(leaderAddress, Settings.LEADER_RMI_PORT);
-                                    leaderInstance = (IMessageReceiver)leader.lookup("RmiServer");
-                                    leaderInstance.addNode(InetAddress.getLocalHost().toString());
-                                }
-                            } catch (RemoteException _ex) {
-                            } catch (NotBoundException _ex) {
-                            }
+                        if (leaderAddress.equals(InetAddress.getLocalHost().toString())) {
+                            System.out.println("I became the leader!");
+                            Registry registry = LocateRegistry.getRegistry(Settings.NODE_RMI_PORT);
+                            registry.unbind("RmiClient");
+                            startLeaderService(node);
+                        } else {
+                            leader = LocateRegistry.getRegistry(leaderAddress, Settings.LEADER_RMI_PORT);
+                            leaderInstance = (IMessageReceiver)leader.lookup("RmiServer");
+                            leaderInstance.addNode(InetAddress.getLocalHost().toString());
                         }
+                    } catch (Exception _ex) {
                     }
                 }
-            })).start();
-
-            _registry = LocateRegistry.createRegistry(Settings.NODE_RMI_PORT);
-            _registry.rebind("RmiClient", node);
+            }
         }
     }
 
     public void startLeaderService(Node node) throws RemoteException
     {
         (new Thread(new LeaderService(Settings.LEADER_UDP_PORT, node))).start();
-        _registry = LocateRegistry.createRegistry(Settings.LEADER_RMI_PORT);
-        _registry.rebind("RmiServer", node);
+        Registry registry = LocateRegistry.createRegistry(Settings.LEADER_RMI_PORT);
+        registry.rebind("RmiServer", node);
     }
-
-    Registry _registry;
 
 }

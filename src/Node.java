@@ -19,10 +19,10 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
     public Node(String host) throws RemoteException, UnknownHostException
     {
         _localhost = host;
-
         if (_localhost.contains("/"))
             _localhost = _localhost.substring(_localhost.indexOf("/") + 1, _localhost.length());
-        _currentNodes = new ArrayList<Node>();
+
+        _currentNodes = new ArrayList<String>();
         _logfile = UUID.randomUUID().toString().replace("-", "") + ".txt";
     }
 
@@ -47,12 +47,16 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
 
     public void execute(String query) throws RemoteException
     {
-        System.out.println("executing query as leader");
+        System.out.println("executing query");
 
         for (String node : _currentNodes) {
-            Registry nodeR = LocateRegistry.getRegistry(leaderAddress, Settings.NODE_RMI_PORT);
-            IMessageReceiver nodeO = (IMessageReceiver)leader.lookup("RmiClient");
-            nodeO.execute(query);
+            try {
+                Registry nodeR = LocateRegistry.getRegistry(node, Settings.NODE_RMI_PORT);
+                IMessageReceiver nodeO = (IMessageReceiver) nodeR.lookup("RmiClient");
+                nodeO.execute(query);
+            } catch (NotBoundException ex) {
+                System.out.println("couldn't communicate with node: " + node);
+            }
         }
 
         updateLog(query);
