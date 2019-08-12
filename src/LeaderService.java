@@ -8,10 +8,10 @@ import java.net.InetSocketAddress;
 
 public class LeaderService implements Runnable
 {
-    public LeaderService(int port, Node node)
+    public LeaderService(int port, Member member)
     {
         _port = port;
-        _node = node;
+        _member = member;
     }
 
     public void run()
@@ -38,7 +38,7 @@ public class LeaderService implements Runnable
                     socket.send(resPkt);
                 } else if (msgData.startsWith("QUERY")) {
                     String query = msgData.replace("QUERY", "");
-                    _node.execute(query);
+                    _member.execute(query);
                 }
             }
         } catch (RemoteException ex) {
@@ -47,5 +47,5 @@ public class LeaderService implements Runnable
     }
 
     int _port;
-    Node _node;
+    Member _member;
 }

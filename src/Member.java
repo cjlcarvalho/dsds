@@ -9,11 +9,11 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.NotBoundException;
 
-public class Node extends UnicastRemoteObject implements IMessageReceiver
+public class Member extends UnicastRemoteObject implements IMember
 {
-    public Node() throws RemoteException, UnknownHostException
+    public Member() throws RemoteException, UnknownHostException
     {
-        _currentNodes = new ArrayList<String>();
+        _currentMembers = new ArrayList<String>();
         _logfile = UUID.randomUUID().toString().replace("-", "") + ".txt";
     }
 
@@ -22,14 +22,14 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
         return true;
     }
 
-    public void addNode(String node) throws RemoteException
+    public void addMember(String host) throws RemoteException
     {
-        if (node.contains("/"))
-            node = node.substring(node.indexOf("/") + 1, node.length());
+        if (host.contains("/"))
+            host = host.substring(host.indexOf("/") + 1, host.length());
 
-        if (!_currentNodes.contains(node)) {
-            System.out.println("adding node: " + node);
-            _currentNodes.add(node);
+        if (!_currentMembers.contains(host)) {
+            System.out.println("adding host: " + host);
+            _currentMember.add(host);
         }
     }
 
@@ -37,13 +37,13 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
     {
         System.out.println("executing query");
 
-        for (String node : _currentNodes) {
+        for (String member : _currentMembers) {
             try {
-                Registry nodeR = LocateRegistry.getRegistry(node, Settings.NODE_RMI_PORT);
-                IMessageReceiver nodeO = (IMessageReceiver) nodeR.lookup("RmiClient");
-                nodeO.execute(query);
+                Registry memberR = LocateRegistry.getRegistry(member, Settings.MEMBER_RMI_PORT);
+                IMember memberO = (IMember) nodeR.lookup("RmiMember");
+                memberO.execute(query);
             } catch (NotBoundException ex) {
-                System.out.println("couldn't communicate with node: " + node);
+                System.out.println("couldn't communicate with member: " + member);
             }
         }
 
@@ -55,6 +55,6 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
         // TODO: update log
     }
 
-    List<String> _currentNodes;
+    List<String> _currentMembers;
     String _logfile;
 }
