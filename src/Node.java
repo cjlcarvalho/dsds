@@ -19,6 +19,9 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
     public Node(String host) throws RemoteException, UnknownHostException
     {
         _localhost = host;
+
+        if (_localhost.contains("/"))
+            _localhost = _localhost.substring(_localhost.indexOf("/") + 1, _localhost.length());
         _currentNodes = new ArrayList<Node>();
         _logfile = UUID.randomUUID().toString().replace("-", "") + ".txt";
     }
@@ -41,6 +44,9 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
     public void addNode(String node) throws RemoteException
     {
         try {
+            if (node.contains("/"))
+                node = node.substring(node.indexOf("/") + 1, node.length());
+            System.out.println(node);
             Node nodeInst = null;
             if (!node.equals(_localhost)) {
                 Registry r = LocateRegistry.getRegistry(node, Settings.NODE_RMI_PORT);
