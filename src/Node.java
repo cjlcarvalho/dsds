@@ -5,6 +5,8 @@ import java.util.UUID;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.RemoteException;
 import java.net.UnknownHostException;
+import java.rmi.registry.Registry;
+import java.rmi.registry.LocateRegistry;
 
 public class Node extends UnicastRemoteObject implements IMessageReceiver
 {
@@ -38,17 +40,21 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
     public void addNode(String node) throws RemoteException
     {
         try {
-            Node node_obj = new Node(node);
-            if (!_currentNodes.contains(node_obj)) {
-                System.out.println("adding node");
-                _currentNodes.add(node_obj);
+            Registry r = LocateRegistry.getRegistry(node, Settings.NODE_RMI_PORT);
+            Node nodeInst = (Node) r.lookup("RmiClient");
 
-                //for (Node n : _currentNodes)
-                //    if (!n.equals(this))
-                //        n.addNode(node);
+            if (!_currentNodes.contains(nodeInst)) {
+                System.out.println("adding node");
+                _currentNodes.add(nodeInst);
+
+                for (Node n : _currentNodes)
+                    if (!n.equals(this))
+                        n.addNode(node);
             }
         } catch (UnknownHostException ex) {
             System.out.println("error adding node");
+        } catch (NotBoundException ex) {
+        
         }
     }
 
