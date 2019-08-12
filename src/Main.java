@@ -74,6 +74,7 @@ public class Main
             _registry.rebind("RmiClient", node);
         } catch (SocketTimeoutException ex) {
             System.out.println("I became the leader!");
+
             Node node = new Node();
             node.addNode(InetAddress.getLocalHost().toString());
             startLeaderService(node);

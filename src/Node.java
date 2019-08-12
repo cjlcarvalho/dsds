@@ -41,8 +41,14 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
     public void addNode(String node) throws RemoteException
     {
         try {
-            Registry r = LocateRegistry.getRegistry(node, Settings.NODE_RMI_PORT);
-            Node nodeInst = (Node) r.lookup("RmiClient");
+            Node nodeInst = null;
+            if (!node.equals(_localhost)) {
+                Registry r = LocateRegistry.getRegistry(node, Settings.NODE_RMI_PORT);
+                nodeInst = (Node) r.lookup("RmiClient");
+            }
+            else {
+                nodeInst = this;
+            }
 
             if (!_currentNodes.contains(nodeInst)) {
                 System.out.println("adding node");
