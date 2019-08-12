@@ -98,10 +98,10 @@ public class Main
         registry.rebind("RmiServer", node);
     }
 
-    public Node buildLeader(String leaderAddress) throws Exception
+    public IMessageReceiver buildLeader(String leaderAddress) throws Exception
     {
         Registry leader = LocateRegistry.getRegistry(leaderAddress, Settings.LEADER_RMI_PORT);
-        Node leaderObj = (Node) leader.lookup("RmiServer");
+        IMessageReceiver leaderObj = (IMessageReceiver) leader.lookup("RmiServer");
         leaderObj.addNode(InetAddress.getLocalHost().toString());
         return leaderObj;
     }
