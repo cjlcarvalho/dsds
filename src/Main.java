@@ -14,9 +14,12 @@ public class Main
 {
     public static void main(String[] args)
     {
-        try {
+        try
+        {
             (new Main()).run();
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             ex.printStackTrace();
         }
     }
@@ -37,10 +40,13 @@ public class Main
         byte[] msg = new byte[1];
         DatagramPacket resp = new DatagramPacket(msg, msg.length);
 
-        try {
+        try
+        {
             socket.receive(resp);
             return resp.getAddress().toString().replace("/", "");
-        } catch (SocketTimeoutException ex) {
+        }
+        catch (SocketTimeoutException ex)
+        {
             return InetAddress.getLocalHost().toString();
         }
     }
@@ -50,16 +56,24 @@ public class Main
         String leaderAddress = getLeaderAddress();
         Member member = new Member();
 
-        if (leaderAddress.equals(InetAddress.getLocalHost().toString())) {
+        if (leaderAddress.equals(InetAddress.getLocalHost().toString()))
+        {
             System.out.println("I became the leader!");
             startLeaderService(member);
-        } else {
-            (new Thread(new Runnable() {
-                public void run() {
-                    try {
+        }
+        else
+        {
+            (new Thread(new Runnable()
+            {
+                public void run()
+                {
+                    try
+                    {
                         Registry registry = LocateRegistry.createRegistry(Settings.MEMBER_RMI_PORT);
                         registry.rebind("RmiMember", member);
-                    } catch (RemoteException ex) {
+                    }
+                    catch (RemoteException ex)
+                    {
                     }
                 }
             })).start();
@@ -67,20 +81,28 @@ public class Main
             IMember leader = buildLeader(leaderAddress);
             System.out.println("current leader: " + leaderAddress);
 
-            while (true) {
-                try {
+            while (true)
+            {
+                try
+                {
                     leader.isAlive();
-                } catch (RemoteException ex) {
-                    try {
+                }
+                catch (RemoteException ex)
+                {
+                    try
+                    {
                         leaderAddress = getLeaderAddress();
 
                         if (leaderAddress.equals(InetAddress.getLocalHost().toString()))
                             break;
-                        else {
+                        else
+                        {
                             leader = buildLeader(leaderAddress);
                             System.out.println("current leader: " + leaderAddress);
                         }
-                    } catch (Exception _ex) {
+                    }
+                    catch (Exception _ex)
+                    {
                     }
                 }
             }

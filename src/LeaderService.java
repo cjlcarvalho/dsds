@@ -16,7 +16,8 @@ public class LeaderService implements Runnable
 
     public void run()
     {
-        try {
+        try
+        {
             DatagramSocket socket = new DatagramSocket(null);
             socket.setReuseAddress(true);
             socket.bind(new InetSocketAddress(_port));
@@ -24,7 +25,8 @@ public class LeaderService implements Runnable
             byte[] msg = new byte[256];
             DatagramPacket msgPkt = new DatagramPacket(msg, msg.length);
 
-            while (true) {
+            while (true)
+            {
                 socket.receive(msgPkt);
 
                 InetAddress sender = msgPkt.getAddress();
@@ -32,17 +34,24 @@ public class LeaderService implements Runnable
 
                 String msgData = new String(msgPkt.getData(), 0, msgPkt.getLength());
 
-                if (msgData.equals("IS_LEADER")) {
+                if (msgData.equals("IS_LEADER"))
+                {
                     byte[] res = "Y".getBytes();
                     DatagramPacket resPkt = new DatagramPacket(res, res.length, sender, senderPort);
                     socket.send(resPkt);
-                } else if (msgData.startsWith("QUERY")) {
+                }
+                else if (msgData.startsWith("QUERY"))
+                {
                     String query = msgData.replace("QUERY", "");
                     _member.execute(query);
                 }
             }
-        } catch (RemoteException ex) {
-        } catch (IOException ex) {
+        }
+        catch (RemoteException ex)
+        {
+        }
+        catch (IOException ex)
+        {
         }
     }
 
