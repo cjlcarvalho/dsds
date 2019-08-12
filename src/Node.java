@@ -10,7 +10,12 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
 {
     public Node() throws RemoteException, UnknownHostException
     {
-        _localhost = InetAddress.getLocalHost().toString();
+        this(InetAddress.getLocalHost().toString());
+    }
+
+    public Node(String host) throws RemoteException, UnknownHostException
+    {
+        _localhost = host;
         _currentNodes = new ArrayList<Node>();
         _logfile = UUID.randomUUID().toString().replace("-", "") + ".txt";
     }
@@ -30,21 +35,21 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
         return true;
     }
 
-    public void addNode(Node node) throws RemoteException
+    public void addNode(String node) throws RemoteException
     {
-        if (!_currentNodes.contains(node)) {
-            System.out.println("adding node");
-            _currentNodes.add(node);
+        try {
+            Node node_obj = new Node(node);
+            if (!_currentNodes.contains(node_obj)) {
+                System.out.println("adding node");
+                _currentNodes.add(node_obj);
 
-            for (Node n : _currentNodes)
-                if (!n.equals(this))
-                    n.updateNodes(_currentNodes);
+                for (Node n : _currentNodes)
+                    if (!n.equals(this))
+                        n.addNode(node);
+            }
+        } catch (UnknownHostException ex) {
+            System.out.println("error adding node");
         }
-    }
-
-    public void updateNodes(List<Node> nodes) throws RemoteException
-    {
-        _currentNodes = nodes;
     }
 
     public void updateLeader() throws RemoteException

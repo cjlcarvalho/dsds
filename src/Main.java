@@ -45,9 +45,10 @@ public class Main
 
             Registry leader = LocateRegistry.getRegistry(leaderAddress, 12930);
             IMessageReceiver leaderInstance = (IMessageReceiver)leader.lookup("rmiServer");
-            leaderInstance.addNode(node);
 
             System.out.println("leader registered");
+            leaderInstance.addNode(InetAddress.getLocalHost().toString());
+            System.out.println("node added");
 
             (new Thread(new Runnable() {
                 public void run() {
@@ -74,7 +75,7 @@ public class Main
         } catch (SocketTimeoutException ex) {
             System.out.println("I became the leader!");
             Node node = new Node();
-            node.addNode(node);
+            node.addNode(InetAddress.getLocalHost().toString());
             startLeaderService(node);
         }
     }
