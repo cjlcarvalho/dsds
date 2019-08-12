@@ -19,7 +19,7 @@ public class LeaderService implements Runnable
         try {
             DatagramSocket socket = new DatagramSocket(null);
             socket.setReuseAddress(true);
-            socket.bind(new InetSocketAddress(12931));
+            socket.bind(new InetSocketAddress(_port));
 
             byte[] msg = new byte[256];
             DatagramPacket msgPkt = new DatagramPacket(msg, msg.length);

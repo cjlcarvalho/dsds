@@ -26,10 +26,10 @@ public class Main
 
         DatagramSocket socket = new DatagramSocket();
         socket.setBroadcast(true);
-        socket.setSoTimeout(1000);
+        socket.setSoTimeout(5000);
 
         byte[] isLeader = "IS_LEADER".getBytes();
-        DatagramPacket req = new DatagramPacket(isLeader, isLeader.length, broadcast, 12931);
+        DatagramPacket req = new DatagramPacket(isLeader, isLeader.length, broadcast, 4445);
         socket.send(req);
 
         byte[] msg = new byte[1];
@@ -40,10 +40,14 @@ public class Main
 
             socket.receive(resp);
             String leaderAddress = resp.getAddress().toString();
+            if (leaderAddress.startsWith("/"))
+                leaderAddress = leaderAddress.replace("/", "");
 
             Registry leader = LocateRegistry.getRegistry(leaderAddress, 12930);
             Node leaderInstance = (Node)leader.lookup("rmiServer");
             leaderInstance.addNode(node);
+
+            System.out.println("leader registered");
 
             (new Thread(new Runnable() {
                 public void run() {
@@ -77,7 +81,7 @@ public class Main
 
     public void startLeaderService(Node node) throws RemoteException
     {
-        (new Thread(new LeaderService(12931, node))).start();
+        (new Thread(new LeaderService(4445, node))).start();
         _registry = LocateRegistry.createRegistry(12930);
         _registry.rebind("rmiServer", node);
     }
