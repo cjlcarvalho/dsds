@@ -42,7 +42,7 @@ public class Member extends UnicastRemoteObject implements IMember
             try
             {
                 Registry memberR = LocateRegistry.getRegistry(member, Settings.MEMBER_RMI_PORT);
-                IMember memberO = (IMember) memberR.lookup("RmiMember");
+                IMember memberO = (IMember) memberR.lookup(Settings.MEMBER_RMI_NAME);
                 memberO.execute(query);
             }
             catch (NotBoundException ex)

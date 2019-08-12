@@ -14,7 +14,7 @@ public class MemberService implements Runnable
         try
         {
             Registry registry = LocateRegistry.createRegistry(Settings.MEMBER_RMI_PORT);
-            registry.rebind("RmiMember", _member);
+            registry.rebind(Settings.MEMBER_RMI_NAME, _member);
         }
         catch (RemoteException ex)
         {
@@ -24,7 +24,7 @@ public class MemberService implements Runnable
     public void stop() throws Exception
     {
         Registry registry = LocateRegistry.getRegistry(Settings.MEMBER_RMI_PORT);
-        registry.unbind("RmiMember");
+        registry.unbind(Settings.MEMBER_RMI_NAME);
     }
 
     Member _member;

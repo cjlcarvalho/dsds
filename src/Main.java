@@ -69,13 +69,13 @@ public class Main
     {
         (new Thread(new LeaderService(Settings.LEADER_UDP_PORT, member))).start();
         Registry registry = LocateRegistry.createRegistry(Settings.LEADER_RMI_PORT);
-        registry.rebind("RmiLeader", member);
+        registry.rebind(Settings.LEADER_RMI_NAME, member);
     }
 
     public IMember buildLeader(String leaderAddress) throws Exception
     {
         Registry leader = LocateRegistry.getRegistry(leaderAddress, Settings.LEADER_RMI_PORT);
-        IMember leaderObj = (IMember) leader.lookup("RmiLeader");
+        IMember leaderObj = (IMember) leader.lookup(Settings.LEADER_RMI_NAME);
         leaderObj.addMember(InetAddress.getLocalHost().toString());
         return leaderObj;
     }
