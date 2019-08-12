@@ -41,8 +41,10 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
         if (node.contains("/"))
             node = node.substring(node.indexOf("/") + 1, node.length());
 
-        System.out.println("adding node: " + node);
-        _currentNodes.add(node);
+        if (!_currentNodes.contains(node)) {
+            System.out.println("adding node: " + node);
+            _currentNodes.add(node);
+        }
     }
 
     public void execute(String query) throws RemoteException
