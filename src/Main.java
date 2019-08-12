@@ -8,6 +8,9 @@ import java.rmi.registry.LocateRegistry;
 import java.net.UnknownHostException;
 import java.io.IOException;
 import java.rmi.NotBoundException;
+import java.rmi.Remote;
+import java.rmi.Naming;
+import java.net.MalformedURLException;
 
 public class Main
 {
@@ -39,16 +42,13 @@ public class Main
             Node node = new Node();
 
             socket.receive(resp);
-            String leaderAddress = resp.getAddress().toString();
-            if (leaderAddress.startsWith("/"))
-                leaderAddress = leaderAddress.replace("/", "");
+            String leaderAddress = resp.getAddress().toString().replace("/", "");
 
-            Registry leader = LocateRegistry.getRegistry(leaderAddress, 12930);
-            IMessageReceiver leaderInstance = (IMessageReceiver)leader.lookup("rmiServer");
+            System.out.println(leaderAddress);
 
-            System.out.println("leader registered");
+            Registry leader = LocateRegistry.getRegistry(leaderAddress, 1099);
+            IMessageReceiver leaderInstance = (IMessageReceiver)leader.lookup("RmiServer");
             leaderInstance.addNode(InetAddress.getLocalHost().toString());
-            System.out.println("node added");
 
             (new Thread(new Runnable() {
                 public void run() {
@@ -59,19 +59,19 @@ public class Main
                             try {
                                 node.updateLeader();
                                 if (node.isLeader()) {
-                                    _registry.unbind("rmiClient");
+                                    _registry.unbind("RmiClient");
                                     startLeaderService(node);
                                 }
                             } catch (RemoteException _ex) {
                             } catch (NotBoundException _ex) {
-                            }
+                            } catch (MalformedURLException _ex) { }
                         }
                     }
                 }
             })).start();
 
-            _registry = LocateRegistry.createRegistry(12932);
-            _registry.rebind("rmiClient", node);
+            _registry = LocateRegistry.createRegistry(1099);
+            _registry.rebind("RmiClient", node);
         } catch (SocketTimeoutException ex) {
             System.out.println("I became the leader!");
             Node node = new Node();
@@ -80,11 +80,11 @@ public class Main
         }
     }
 
-    public void startLeaderService(Node node) throws RemoteException
+    public void startLeaderService(Node node) throws RemoteException, MalformedURLException
     {
         (new Thread(new LeaderService(4445, node))).start();
-        _registry = LocateRegistry.createRegistry(12930);
-        _registry.rebind("rmiServer", node);
+        _registry = LocateRegistry.createRegistry(1099);
+        _registry.rebind("RmiServer", node);
     }
 
     Registry _registry;

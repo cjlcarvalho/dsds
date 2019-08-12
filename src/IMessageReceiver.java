@@ -3,9 +3,9 @@ import java.rmi.RemoteException;
 
 public interface IMessageReceiver extends Remote
 {
-    boolean isLeader() throws RemoteException;
-    boolean isAlive() throws RemoteException;
-    void addNode(String node) throws RemoteException;
-    void updateLeader() throws RemoteException;
-    void execute(String query) throws RemoteException;
+    public boolean isLeader() throws RemoteException;
+    public boolean isAlive() throws RemoteException;
+    public void addNode(String node) throws RemoteException;
+    public void updateLeader() throws RemoteException;
+    public void execute(String query) throws RemoteException;
 }

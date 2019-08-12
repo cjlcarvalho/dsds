@@ -43,9 +43,9 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
                 System.out.println("adding node");
                 _currentNodes.add(node_obj);
 
-                for (Node n : _currentNodes)
-                    if (!n.equals(this))
-                        n.addNode(node);
+                //for (Node n : _currentNodes)
+                //    if (!n.equals(this))
+                //        n.addNode(node);
             }
         } catch (UnknownHostException ex) {
             System.out.println("error adding node");
