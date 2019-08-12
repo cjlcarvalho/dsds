@@ -19,7 +19,7 @@ public class LeaderService implements Runnable
         try {
             DatagramSocket socket = new DatagramSocket(null);
             socket.setReuseAddress(true);
-            socket.bind(new InetSocketAddress(12931));
+            socket.bind(new InetSocketAddress(_port));
 
             byte[] msg = new byte[256];
             DatagramPacket msgPkt = new DatagramPacket(msg, msg.length);
@@ -30,7 +30,7 @@ public class LeaderService implements Runnable
                 InetAddress sender = msgPkt.getAddress();
                 int senderPort = msgPkt.getPort();
 
-                String msgData = Base64.getEncoder().encodeToString(msgPkt.getData());
+                String msgData = new String(msgPkt.getData(), 0, msgPkt.getLength());
 
                 if (msgData.equals("IS_LEADER")) {
                     byte[] res = "Y".getBytes();
