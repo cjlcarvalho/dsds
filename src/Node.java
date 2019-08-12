@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 import java.net.UnknownHostException;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
+import java.rmi.NotBoundException;
 
 public class Node extends UnicastRemoteObject implements IMessageReceiver
 {
@@ -51,8 +52,6 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
                     if (!n.equals(this))
                         n.addNode(node);
             }
-        } catch (UnknownHostException ex) {
-            System.out.println("error adding node");
         } catch (NotBoundException ex) {
         
         }
