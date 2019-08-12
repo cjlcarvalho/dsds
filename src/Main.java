@@ -65,19 +65,21 @@ public class Main
             })).start();
 
             IMember leader = buildLeader(leaderAddress);
+            System.out.println("current leader: " + leaderAddress);
 
             while (true) {
                 try {
                     leader.isAlive();
-                    System.out.println("the leader is alive!");
                 } catch (RemoteException ex) {
                     try {
                         leaderAddress = getLeaderAddress();
 
                         if (leaderAddress.equals(InetAddress.getLocalHost().toString()))
                             break;
-                        else
+                        else {
                             leader = buildLeader(leaderAddress);
+                            System.out.println("current leader: " + leaderAddress);
+                        }
                     } catch (Exception _ex) {
                     }
                 }
