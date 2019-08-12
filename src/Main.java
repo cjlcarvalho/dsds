@@ -40,10 +40,14 @@ public class Main
 
             socket.receive(resp);
             String leaderAddress = resp.getAddress().toString();
+            if (leaderAddress.startsWith("/"))
+                leaderAddress = leaderAddress.replace("/", "");
 
             Registry leader = LocateRegistry.getRegistry(leaderAddress, 12930);
             Node leaderInstance = (Node)leader.lookup("rmiServer");
             leaderInstance.addNode(node);
+
+            System.out.println("leader registered");
 
             (new Thread(new Runnable() {
                 public void run() {
