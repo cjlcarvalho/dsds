@@ -103,7 +103,7 @@ public class Main
     public IMember buildLeader(String leaderAddress) throws Exception
     {
         Registry leader = LocateRegistry.getRegistry(leaderAddress, Settings.LEADER_RMI_PORT);
-        IMember leaderObj = (IMessageReceiver) leader.lookup("RmiLeader");
+        IMember leaderObj = (IMember) leader.lookup("RmiLeader");
         leaderObj.addMember(InetAddress.getLocalHost().toString());
         return leaderObj;
     }

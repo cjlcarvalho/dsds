@@ -29,7 +29,7 @@ public class Member extends UnicastRemoteObject implements IMember
 
         if (!_currentMembers.contains(host)) {
             System.out.println("adding host: " + host);
-            _currentMember.add(host);
+            _currentMembers.add(host);
         }
     }
 
@@ -40,7 +40,7 @@ public class Member extends UnicastRemoteObject implements IMember
         for (String member : _currentMembers) {
             try {
                 Registry memberR = LocateRegistry.getRegistry(member, Settings.MEMBER_RMI_PORT);
-                IMember memberO = (IMember) nodeR.lookup("RmiMember");
+                IMember memberO = (IMember) memberR.lookup("RmiMember");
                 memberO.execute(query);
             } catch (NotBoundException ex) {
                 System.out.println("couldn't communicate with member: " + member);
