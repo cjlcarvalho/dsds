@@ -13,22 +13,8 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
 {
     public Node() throws RemoteException, UnknownHostException
     {
-        this(InetAddress.getLocalHost().toString());
-    }
-
-    public Node(String host) throws RemoteException, UnknownHostException
-    {
-        _localhost = host;
-        if (_localhost.contains("/"))
-            _localhost = _localhost.substring(_localhost.indexOf("/") + 1, _localhost.length());
-
         _currentNodes = new ArrayList<String>();
         _logfile = UUID.randomUUID().toString().replace("-", "") + ".txt";
-    }
-
-    public boolean equals(Node other)
-    {
-        return _localhost.equals(other._localhost);
     }
 
     public boolean isAlive() throws RemoteException
@@ -70,6 +56,5 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
     }
 
     List<String> _currentNodes;
-    String _localhost;
     String _logfile;
 }

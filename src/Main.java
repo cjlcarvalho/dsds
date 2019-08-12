@@ -64,33 +64,30 @@ public class Main
                 }
             })).start();
 
-            Registry leader = LocateRegistry.getRegistry(leaderAddress, Settings.LEADER_RMI_PORT);
-            IMessageReceiver leaderInstance = (IMessageReceiver)leader.lookup("RmiServer");
-            leaderInstance.addNode(InetAddress.getLocalHost().toString());
+            IMessageReceiver leader = buildLeader(leaderAddress);
 
             while (true) {
                 try {
-                    leaderInstance.isAlive();
+                    leader.isAlive();
                     System.out.println("the leader is alive!");
                 } catch (RemoteException ex) {
                     try {
                         leaderAddress = getLeaderAddress();
 
-                        if (leaderAddress.equals(InetAddress.getLocalHost().toString())) {
-                            System.out.println("I became the leader!");
-                            leaderInstance = null;
-                            Registry registry = LocateRegistry.getRegistry(Settings.NODE_RMI_PORT);
-                            registry.unbind("RmiClient");
-                            startLeaderService(node);
-                        } else {
-                            leader = LocateRegistry.getRegistry(leaderAddress, Settings.LEADER_RMI_PORT);
-                            leaderInstance = (IMessageReceiver)leader.lookup("RmiServer");
-                            leaderInstance.addNode(InetAddress.getLocalHost().toString());
-                        }
+                        if (leaderAddress.equals(InetAddress.getLocalHost().toString()))
+                            break;
+                        else
+                            leader = buildLeader(leaderAddress);
                     } catch (Exception _ex) {
                     }
                 }
             }
+
+            System.out.println("I became the leader!");
+            leader = null;
+            Registry registry = LocateRegistry.getRegistry(Settings.NODE_RMI_PORT);
+            registry.unbind("RmiClient");
+            startLeaderService(node);
         }
     }
 
@@ -99,6 +96,14 @@ public class Main
         (new Thread(new LeaderService(Settings.LEADER_UDP_PORT, node))).start();
         Registry registry = LocateRegistry.createRegistry(Settings.LEADER_RMI_PORT);
         registry.rebind("RmiServer", node);
+    }
+
+    public Node buildLeader(String leaderAddress) throws Exception
+    {
+        Registry leader = LocateRegistry.getRegistry(leaderAddress, Settings.LEADER_RMI_PORT);
+        Node leaderObj = (Node) leader.lookup("RmiServer");
+        leaderObj.addNode(InetAddress.getLocalHost().toString());
+        return leaderObj;
     }
 
 }
