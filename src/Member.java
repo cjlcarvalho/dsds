@@ -62,7 +62,8 @@ public class Member extends UnicastRemoteObject implements IMember
         _updateLog(q);
     }
 
-    private void executeAsMember(int queriesExecuted, String query) {
+    private void executeAsMember(int queriesExecuted, String query)
+    {
         // se o valor atual - valor anterior > 1, então houve algum erro
         // pedir últimas queries ao líder a partir do número que parou
 
@@ -84,9 +85,12 @@ public class Member extends UnicastRemoteObject implements IMember
     private void _executeSQL(String query) throws Exception
     {
         PreparedStatement pstm = DBConnection().getConnection().prepareStatement(query);
-        try {
+        try
+        {
             pstm.executeQuery();
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             System.out.println("erro durante execução de query sql");
         }
     }
