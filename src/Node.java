@@ -31,11 +31,6 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
         return _localhost.equals(other._localhost);
     }
 
-    public boolean isLeader() throws RemoteException
-    {
-        return _currentNodes.get(0).equals(this);
-    }
-
     public boolean isAlive() throws RemoteException
     {
         return true;
@@ -43,45 +38,22 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
 
     public void addNode(String node) throws RemoteException
     {
-        try {
-            if (node.contains("/"))
-                node = node.substring(node.indexOf("/") + 1, node.length());
-            System.out.println(node);
-            Node nodeInst = null;
-            if (!node.equals(_localhost)) {
-                Registry r = LocateRegistry.getRegistry(node, Settings.NODE_RMI_PORT);
-                nodeInst = (Node) r.lookup("RmiClient");
-            }
-            else {
-                nodeInst = this;
-            }
+        if (node.contains("/"))
+            node = node.substring(node.indexOf("/") + 1, node.length());
 
-            if (!_currentNodes.contains(nodeInst)) {
-                System.out.println("adding node");
-                _currentNodes.add(nodeInst);
-
-                for (Node n : _currentNodes)
-                    if (!n.equals(this))
-                        n.addNode(node);
-            }
-        } catch (NotBoundException ex) {
-        
-        }
-    }
-
-    public void updateLeader() throws RemoteException
-    {
-        _currentNodes.remove(0);
+        System.out.println("adding node: " + node);
+        _currentNodes.add(node);
     }
 
     public void execute(String query) throws RemoteException
     {
         System.out.println("executing query as leader");
 
-        if (isLeader())
-            for (Node node : _currentNodes)
-                if (!node.equals(this))
-                    node.execute(query);
+        for (String node : _currentNodes) {
+            Registry nodeR = LocateRegistry.getRegistry(leaderAddress, Settings.NODE_RMI_PORT);
+            IMessageReceiver nodeO = (IMessageReceiver)leader.lookup("RmiClient");
+            nodeO.execute(query);
+        }
 
         updateLog(query);
     }
@@ -91,7 +63,7 @@ public class Node extends UnicastRemoteObject implements IMessageReceiver
         // TODO: update log
     }
 
-    List<Node> _currentNodes;
+    List<String> _currentNodes;
     String _localhost;
     String _logfile;
 }

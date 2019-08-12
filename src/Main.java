@@ -23,7 +23,7 @@ public class Main
         }
     }
 
-    public void run () throws Exception
+    public String getLeaderAddress() throws Exception
     {
         InetAddress broadcast = InetAddress.getByName("192.168.1.255");
 
@@ -32,18 +32,30 @@ public class Main
         socket.setSoTimeout(1000);
 
         byte[] isLeader = "IS_LEADER".getBytes();
-        DatagramPacket req = new DatagramPacket(isLeader, isLeader.length, broadcast, Settings.LEADER_UDP_PORT);
+        DatagramPacket req = new DatagramPacket(isLeader, isLeader.length, broadcast,
+                                                Settings.LEADER_UDP_PORT);
         socket.send(req);
 
         byte[] msg = new byte[1];
         DatagramPacket resp = new DatagramPacket(msg, msg.length);
 
         try {
-            Node node = new Node();
-
             socket.receive(resp);
-            String leaderAddress = resp.getAddress().toString().replace("/", "");
+            return resp.getAddress().toString().replace("/", "");
+        } catch (SocketTimeoutException ex) {
+            return InetAddress.getLocalHost().toString();
+        }
+    }
 
+    public void run () throws Exception
+    {
+        String leaderAddress = getLeaderAddress();
+
+        if (leaderAddress.equals(InetAddress.getLocalHost().toString()) {
+        System.out.println("I became the leader!");
+            Node node = new Node();
+            startLeaderService(node);
+        } else {
             System.out.println(leaderAddress);
 
             Registry leader = LocateRegistry.getRegistry(leaderAddress, Settings.LEADER_RMI_PORT);
@@ -57,10 +69,16 @@ public class Main
                             leaderInstance.isAlive();
                         } catch (RemoteException ex) {
                             try {
-                                node.updateLeader();
-                                if (node.isLeader()) {
+                                String leaderAddress = getLeaderAddress();
+
+                                if (leaderAddress.equals(InetAddress.getLocalHost().toString())) {
+                                    System.out.println("I became the leader!");
                                     _registry.unbind("RmiClient");
                                     startLeaderService(node);
+                                } else {
+                                    Registry leader = LocateRegistry.getRegistry(leaderAddress, Settings.LEADER_RMI_PORT);
+                                    leaderInstance = (IMessageReceiver)leader.lookup("RmiServer");
+                                    leaderInstance.addNode(InetAddress.getLocalHost().toString());
                                 }
                             } catch (RemoteException _ex) {
                             } catch (NotBoundException _ex) {
@@ -72,12 +90,6 @@ public class Main
 
             _registry = LocateRegistry.createRegistry(Settings.NODE_RMI_PORT);
             _registry.rebind("RmiClient", node);
-        } catch (SocketTimeoutException ex) {
-            System.out.println("I became the leader!");
-
-            Node node = new Node();
-            node.addNode(InetAddress.getLocalHost().toString());
-            startLeaderService(node);
         }
     }
 
