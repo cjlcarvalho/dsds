@@ -6,7 +6,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.rmi.RemoteException;
 import java.net.UnknownHostException;
 
-public class Node extends UnicastRemoteObject
+public class Node extends UnicastRemoteObject implement IMessageReceiver
 {
     public Node() throws RemoteException, UnknownHostException
     {

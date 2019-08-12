@@ -44,7 +44,7 @@ public class Main
                 leaderAddress = leaderAddress.replace("/", "");
 
             Registry leader = LocateRegistry.getRegistry(leaderAddress, 12930);
-            Node leaderInstance = (Node)leader.lookup("rmiServer");
+            Node leaderInstance = (IMessageReceiver)leader.lookup("rmiServer");
             leaderInstance.addNode(node);
 
             System.out.println("leader registered");
