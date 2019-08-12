@@ -1,81 +1,87 @@
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.DatagramSocket;
+import java.net.SocketTimeoutException;
+import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
+import java.rmi.registry.LocateRegistry;
+import java.net.UnknownHostException;
+import java.io.IOException;
+import java.rmi.NotBoundException;
 
 public class Main
 {
-    final int LEADER_PORT = 3526;
-    final int MESSAG_PORT = 4402;
-
-    public static void main(String[] args) {
-        (new Main()).start();
-    }
-
-    public void start() {
-        
-        while (true) {
-            if (isLeader())
-                _service = new LeaderService(LEADER_PORT, MESSAG_PORT);
-            else
-                _service = new NodeService(MESSAG_PORT);
-
-            try {
-                _service.run();
-            }
-            catch (LeaderException ex) {
-                System.out.println("Leader has disconnect. Let's select a new one!");
-            }
+    public static void main(String[] args)
+    {
+        try {
+            (new Main()).run();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
-    public boolean isLeader() {
-        InetAddress ip = _getMyIP();
+    public void run () throws Exception
+    {
+        InetAddress broadcast = InetAddress.getByName("192.168.1.255");
 
-        if (myIP != null) {
-            String hostAddress = ip.getHostAddress();
-            String broadcastAddress = hostAddress.substring(0, hostAddress.lastIndexOf(".") + 1) + "0";
+        DatagramSocket socket = new DatagramSocket();
+        socket.setBroadcast(true);
+        socket.setSoTimeout(1000);
 
-            MulticastSocket socket = new MulticastSocket(LEADER_PORT);
-            InetAddress broadcastGroup = InetAddress.getByName(broadcastAddress);
-            socket.joinGroup(broadcastGroup);
-            socket.setSoTimeout(100);
+        byte[] isLeader = "IS_LEADER".getBytes();
+        DatagramPacket req = new DatagramPacket(isLeader, isLeader.length, broadcast, 12931);
+        socket.send(req);
 
-            byte[] request = "IS_LEADER".getBytes();
-            DatagramPacket requestPacket = new DatagramPacket(request, request.length);
-            socket.send(requestPacket);
+        byte[] msg = new byte[1];
+        DatagramPacket resp = new DatagramPacket(msg, msg.length);
 
-            byte[] response = new byte[256];
-            DatagramPacket responsePacket = new DatagramPacket(response, response.length);
+        try {
+            Node node = new Node();
 
-            try {
-                socket.receive(responsePacket);
-                InetAddress leaderAddress = responsePacket.getAddress();
+            socket.receive(resp);
+            String leaderAddress = resp.getAddress().toString();
 
-                byte[] reqNodes = "REQ_NODES".getBytes();
-                DatagramPacket reqNodesPacket = new DatagramPacket(reqNodes, reqNodes.length);
-                socket.send(reqPacket);
+            Registry leader = LocateRegistry.getRegistry(leaderAddress, 12930);
+            Node leaderInstance = (Node)leader.lookup("rmiServer");
+            leaderInstance.addNode(node);
 
-                byte[] respNodes = new byte[256];
-                DatagramPacket respNodesPacket = new DatagramPacket(respNodes, respNodes.length);
-                socket.receive(respNodesPacket);
-
-                int nodeNum = Integer.parseInt(Base64.getEncoder().encodeToString(respNodesPacket.getData()));
-
-                while (nodeNum > 0) {
-                    socket.receive(respNodesPacket);
-
-                    _knownNodes.add(new Node(Base64.getEncoder().encodeToString(respNodesPacket.getData())));
-
-                    nodeNum--;
+            (new Thread(new Runnable() {
+                public void run() {
+                    while (true) {
+                        try {
+                            leaderInstance.isAlive();
+                        } catch (RemoteException ex) {
+                            try {
+                                node.updateLeader();
+                                if (node.isLeader()) {
+                                    _registry.unbind("rmiClient");
+                                    startLeaderService(node);
+                                }
+                            } catch (RemoteException _ex) {
+                            } catch (NotBoundException _ex) {
+                            }
+                        }
+                    }
                 }
+            })).start();
 
-                return false;
-            }
-            catch (SocketTimeoutException ex) {
-                _knownNodes.add(new Node(ip.getHostAddress()));
-                return true;
-            }
+            _registry = LocateRegistry.createRegistry(12932);
+            _registry.rebind("rmiClient", node);
+        } catch (SocketTimeoutException ex) {
+            System.out.println("I became the leader!");
+            Node node = new Node();
+            node.addNode(node);
+            startLeaderService(node);
         }
     }
 
-    private List<Node> _knownNodes;
-    private Node _selfNode;
-    private Thread _service;
+    public void startLeaderService(Node node) throws RemoteException
+    {
+        (new Thread(new LeaderService(12931, node))).start();
+        _registry = LocateRegistry.createRegistry(12930);
+        _registry.rebind("rmiServer", node);
+    }
+
+    Registry _registry;
+
 }
