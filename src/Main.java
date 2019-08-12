@@ -64,6 +64,7 @@ public class Main
                                 }
                             } catch (RemoteException _ex) {
                             } catch (NotBoundException _ex) {
+                            }
                         }
                     }
                 }
@@ -81,7 +82,7 @@ public class Main
 
     public void startLeaderService(Node node) throws RemoteException
     {
-        (new Thread(new LeaderService(LEADER_UDP_PORT, node))).start();
+        (new Thread(new LeaderService(Settings.LEADER_UDP_PORT, node))).start();
         _registry = LocateRegistry.createRegistry(Settings.LEADER_RMI_PORT);
         _registry.rebind("RmiServer", node);
     }
