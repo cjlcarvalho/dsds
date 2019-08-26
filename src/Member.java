@@ -1,3 +1,6 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +38,7 @@ public class Member extends UnicastRemoteObject implements IMember
         }
     }
 
-    public void execute(String query) throws RemoteException
+    public void execute(String query) throws Exception
     {
         System.out.println("executing query");
 
@@ -62,7 +65,7 @@ public class Member extends UnicastRemoteObject implements IMember
         _updateLog(q);
     }
 
-    private void executeAsMember(int queriesExecuted, String query)
+    public void executeAsMember(int queriesExecuted, String query) throws Exception
     {
         // se o valor atual - valor anterior > 1, então houve algum erro
         // pedir últimas queries ao líder a partir do número que parou
@@ -74,7 +77,7 @@ public class Member extends UnicastRemoteObject implements IMember
         _updateLog(query);
     }
 
-    private void updateLog(String query)
+    private void _updateLog(String query) throws IOException
     {
         File file = new File(_logfile);
         FileWriter fr = new FileWriter(file, true);
@@ -84,7 +87,7 @@ public class Member extends UnicastRemoteObject implements IMember
 
     private void _executeSQL(String query) throws Exception
     {
-        PreparedStatement pstm = DBConnection().getConnection().prepareStatement(query);
+        PreparedStatement pstm = DBConnection.getConnection().prepareStatement(query);
         try
         {
             pstm.executeQuery();
