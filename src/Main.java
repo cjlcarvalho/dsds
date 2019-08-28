@@ -12,7 +12,10 @@ public class Main
     {
         try
         {
-            (new Main()).run();
+            if (args.length < 1)
+                System.out.println("Please specify your IPv4 address");
+            else
+                (new Main(args[0])).run();
         }
         catch (Exception ex)
         {
@@ -20,15 +23,20 @@ public class Main
         }
     }
 
+    public Main(String ip)
+    {
+        _ip = ip;
+    }
+
     public String getLeaderAddress() throws Exception
     {
-        InetAddress broadcast = InetAddress.getByName("192.168.1.255");
+        InetAddress broadcast = InetAddress.getByName(_ip.substring(0, _ip.lastIndexOf(".")) + ".255");
 
         DatagramSocket socket = new DatagramSocket();
         socket.setBroadcast(true);
         socket.setSoTimeout(1000);
 
-        byte[] isLeader = "IS_LEADER".getBytes();
+        byte[] isLeader = "IS_LEADER A".getBytes();
         DatagramPacket request = new DatagramPacket(isLeader, isLeader.length, broadcast,
                                                     Settings.LEADER_UDP_PORT);
         socket.send(request);
@@ -47,7 +55,7 @@ public class Main
         }
     }
 
-    public void run () throws Exception
+    public void run() throws Exception
     {
         String leaderAddress = getLeaderAddress();
         Member member = new Member();
@@ -118,4 +126,5 @@ public class Main
         memberService.stop();
     }
 
+    private String _ip;
 }

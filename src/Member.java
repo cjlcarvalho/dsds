@@ -33,18 +33,15 @@ public class Member extends UnicastRemoteObject implements IMember
 
         if (!_currentMembers.contains(host))
         {
-            System.out.println("adding host: " + host);
+            System.out.println("Adding host: " + host);
             _currentMembers.add(host);
         }
     }
 
     public void execute(String query) throws Exception
     {
-        System.out.println("executing query");
 
-        String q = query.substring(6, query.length());
-
-        _executeSQL(q);
+        _executeSQL(query);
 
         _queriesExecuted++;
 
@@ -54,7 +51,7 @@ public class Member extends UnicastRemoteObject implements IMember
             {
                 Registry memberR = LocateRegistry.getRegistry(member, Settings.MEMBER_RMI_PORT);
                 IMember memberO = (IMember) memberR.lookup(Settings.MEMBER_RMI_NAME);
-                memberO.executeAsMember(_queriesExecuted, q);
+                memberO.executeAsMember(_queriesExecuted, query);
             }
             catch (NotBoundException ex)
             {
@@ -62,7 +59,7 @@ public class Member extends UnicastRemoteObject implements IMember
             }
         }
 
-        _updateLog(q);
+        _updateLog(query);
     }
 
     public void executeAsMember(int queriesExecuted, String query) throws Exception
@@ -73,7 +70,6 @@ public class Member extends UnicastRemoteObject implements IMember
         _queriesExecuted = queriesExecuted;
 
         _executeSQL(query);
-
         _updateLog(query);
     }
 
@@ -81,21 +77,14 @@ public class Member extends UnicastRemoteObject implements IMember
     {
         File file = new File(_logfile);
         FileWriter fr = new FileWriter(file, true);
-        fr.write(_queriesExecuted.toString() + " | " + query);
+        fr.write(_queriesExecuted.toString() + " | " + query + "\n");
         fr.close();
     }
 
     private void _executeSQL(String query) throws Exception
     {
         PreparedStatement pstm = DBConnection.getConnection().prepareStatement(query);
-        try
-        {
-            pstm.executeQuery();
-        }
-        catch (Exception ex)
-        {
-            System.out.println("erro durante execução de query sql");
-        }
+        pstm.execute();
     }
 
     List<String> _currentMembers;

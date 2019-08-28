@@ -7,7 +7,7 @@ public class Settings
     static final String LEADER_RMI_NAME = "RmiLeader";
     static final String MEMBER_RMI_NAME = "RmiMember";
 
-    static final String DB_URI = "...";
-    static final String DB_USER = "root";
-    static final String DB_PASSWD = "abcdefghi";
+    static final String DB_URI = "jdbc:postgresql://localhost:5432/postgres";
+    static final String DB_USER = "postgres";
+    static final String DB_PASSWD = "root";
 }

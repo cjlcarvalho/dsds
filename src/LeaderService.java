@@ -31,16 +31,35 @@ public class LeaderService implements Runnable
 
                 String msgData = new String(msgPkt.getData(), 0, msgPkt.getLength());
 
-                if (msgData.equals("IS_LEADER"))
+                if (msgData.startsWith("IS_LEADER"))
                 {
+                    System.out.println("Received a request from: " + sender.toString().replace("/", ""));
                     byte[] res = "Y".getBytes();
                     DatagramPacket resPkt = new DatagramPacket(res, res.length, sender, senderPort);
                     socket.send(resPkt);
+
+                    if (msgData.endsWith("A")) {
+                        _member.addMember(sender.toString());
+                    }
                 }
                 else if (msgData.startsWith("QUERY"))
                 {
-                    String query = msgData.replace("QUERY", "");
-                    _member.execute(query);
+                    String query = msgData.substring(6, msgData.length());
+                    System.out.println("Received a query: " + query);
+                    
+                    try {
+                        _member.execute(query);
+                        byte[] res = "Query executed!".getBytes();
+                        DatagramPacket resPkt = new DatagramPacket(res, res.length, sender, senderPort);
+                        socket.send(resPkt);
+                    }
+                    catch (Exception ex) {
+                        byte[] res = "Unable to execute query!".getBytes();
+                        DatagramPacket resPkt = new DatagramPacket(res, res.length, sender, senderPort);
+                        socket.send(resPkt);
+
+                        ex.printStackTrace();
+                    }
                 }
             }
         }
