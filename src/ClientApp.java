@@ -4,7 +4,7 @@ import java.net.DatagramSocket;
 import java.net.SocketTimeoutException;
 import java.util.Scanner;
 
-public class App
+public class ClientApp
 {
 
     public static void main(String[] args)
@@ -12,10 +12,10 @@ public class App
         if (args.length < 1)
             System.out.println("Please specify your IPv4 address");
         else
-            (new App(args[0])).start();
+            (new ClientApp(args[0])).start();
     }
 
-    public App(String myIP)
+    public ClientApp(String myIP)
     {
         _myIP = myIP;
     }

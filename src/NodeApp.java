@@ -6,7 +6,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 
-public class Main
+public class NodeApp
 {
     public static void main(String[] args)
     {
@@ -15,7 +15,7 @@ public class Main
             if (args.length < 1)
                 System.out.println("Please specify your IPv4 address");
             else
-                (new Main(args[0])).run();
+                (new NodeApp(args[0])).run();
         }
         catch (Exception ex)
         {
@@ -23,7 +23,7 @@ public class Main
         }
     }
 
-    public Main(String ip)
+    public NodeApp(String ip)
     {
         _ip = ip;
     }
